@@ -69,8 +69,11 @@ class Quick_Order_Ajax {
     private function render_no_orders_template() {
         ?>
         <div class="no-orders-message">
-            <p><?php echo esc_html($this->settings->get_setting('no_orders_text')); ?></p>
-            <p><?php echo esc_html($this->settings->get_setting('recommended_text')); ?></p>
+            <div class="no-orders-message-content">
+            <p class="p-centered"><span><?php echo wp_kses_post($this->settings->get_setting('no_orders_text')); ?></span>
+            <span><?php echo wp_kses_post($this->settings->get_setting('no_orders_note')); ?></span></p>
+            </div>
+            <p class="p-centered"><?php echo wp_kses_post($this->settings->get_setting('recommended_text')); ?></p>
             
             <div class="recommended-products">
                 <?php

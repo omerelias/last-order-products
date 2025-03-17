@@ -81,6 +81,7 @@ class Quick_Order_Settings {
         $this->add_text_field('button_text', 'Quick Order Button Text', 'Quick Order');
         $this->add_text_field('header_text', 'Header Text', 'The Movement in One Click');
         $this->add_text_field('no_orders_text', 'No Orders Message', 'No orders in your account yet');
+        $this->add_text_field('no_orders_note', 'No Orders Message - Note', 'Make an order and next time you can easily and quickly buy the products you loved again');
         $this->add_text_field('recommended_text', 'Recommended Products Text', 'Meanwhile, these are our most popular products');
         $this->add_text_field('greeting_text', 'Greeting Text', 'Hi %s :)');
         $this->add_text_field('last_order_text', 'Last Order Text', 'My Last Order');
@@ -133,7 +134,9 @@ class Quick_Order_Settings {
             'items_selected_text' => 'Use %d for the number of items',
             'cart_confirmation_text' => 'Use %d for the number of items in cart. You can use <b>tags</b> for bold text',
             'cart_confirm_yes_text' => 'Text for the button to keep existing items',
-            'cart_confirm_no_text' => 'Text for the button to remove existing items'
+            'cart_confirm_no_text' => 'Text for the button to remove existing items',
+            'no_orders_text' => 'You can use <b>tags</b> for bold text and <br> for line breaks',
+            'no_orders_note' => 'You can use <b>tags</b> for bold text and <br> for line breaks'
         );
         return isset($help_texts[$id]) ? $help_texts[$id] : '';
     }
