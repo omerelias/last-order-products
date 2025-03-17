@@ -122,6 +122,9 @@
     background: #F5F5F5;
     border-radius: 4px;
     padding: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .quantity-button {
@@ -132,6 +135,15 @@
     color: #222222;
     font-size: 16px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.quantity-button:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 2px;
 }
 
 .quantity-input {
@@ -140,6 +152,14 @@
     background: transparent;
     text-align: center;
     font-size: 14px;
+    -moz-appearance: textfield; /* Firefox */
+}
+
+/* Remove arrows for Chrome, Safari, Edge, Opera */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .order-summary {
