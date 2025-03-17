@@ -17,7 +17,11 @@ class Quick_Order {
     public function __construct() {
         $this->load_dependencies();
         $this->init_components();
-        $this->init_hooks();
+        
+        // Only initialize hooks if enabled
+        if ($this->is_enabled()) {
+            $this->init_hooks();
+        }
     }
 
     private function load_dependencies() {
@@ -35,6 +39,10 @@ class Quick_Order {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_footer', array($this, 'render_quick_order_button'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+    }
+
+    private function is_enabled() {
+        return $this->settings->get_setting('enabled', true);
     }
 
     public function load_plugin_textdomain() {
@@ -64,7 +72,7 @@ class Quick_Order {
     }
 
     public function enqueue_scripts() {
-        if (!is_user_logged_in()) {
+        if (!is_user_logged_in() || !$this->is_enabled()) {
             return;
         }
 
@@ -101,7 +109,7 @@ class Quick_Order {
     }
 
     public function render_quick_order_button() {
-        if (!is_user_logged_in()) {
+        if (!is_user_logged_in() || !$this->is_enabled()) {
             return;
         }
         ?>

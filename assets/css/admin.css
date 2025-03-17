@@ -1,14 +1,13 @@
 .quick-order-settings {
-    max-width: 1200px;
-    margin: 20px 0;
+    max-width: 800px;
+    margin: 20px;
 }
 
 .quick-order-settings-container {
     background: #fff;
-    padding: 15px;
-    border: 1px solid #ccd0d4;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04);
-    margin-top: 15px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-top: none;
 }
 
 .quick-order-settings h2 {
@@ -20,31 +19,17 @@
 }
 
 .quick-order-field {
-    margin: 8px 0;
+    margin-bottom: 20px;
 }
 
 .quick-order-field textarea {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    padding: 6px;
-    box-shadow: 0 0 0 transparent;
-    border-radius: 4px;
-    border: 1px solid #8c8f94;
-    background-color: #fff;
-    color: #2c3338;
-    width: 100%;
-}
-
-.quick-order-field textarea:focus {
-    border-color: #2271b1;
-    box-shadow: 0 0 0 1px #2271b1;
-    outline: 2px solid transparent;
+    min-height: 60px;
 }
 
 .quick-order-field .description {
     font-style: italic;
-    color: #646970;
-    margin-top: 3px;
-    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
 }
 
 /* Form table improvements */
@@ -73,4 +58,8 @@
 /* Adjust section headers */
 .form-table + h2 {
     margin-top: 20px;
+}
+
+.nav-tab-wrapper {
+    margin-bottom: 0;
 } 

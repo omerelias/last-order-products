@@ -11,8 +11,10 @@ class Quick_Order_Ajax {
     }
 
     private function init_hooks() {
-        add_action('wp_ajax_get_quick_order_content', array($this, 'get_quick_order_content'));
-        add_action('wp_ajax_quick_order_add_to_cart', array($this, 'add_to_cart'));
+        if ($this->settings->get_setting('enabled', true)) {
+            add_action('wp_ajax_get_quick_order_content', array($this, 'get_quick_order_content'));
+            add_action('wp_ajax_quick_order_add_to_cart', array($this, 'add_to_cart'));
+        }
     }
 
     public function get_quick_order_content() {
