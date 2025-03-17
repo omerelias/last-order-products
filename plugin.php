@@ -200,7 +200,8 @@ class QuickOrderHistory {
             </div>
         </div>
 
-        <div id="cart-confirmation-modal" class="quick-order-modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div id="cart-confirmation-modal" class="quick-order-modal">
             <p><?php esc_html_e('Your cart contains existing items. Would you like to keep them?', $this->text_domain); ?></p>
             <div class="modal-buttons">
                 <button class="confirm-no"><?php esc_html_e('No, remove them', $this->text_domain); ?></button>
@@ -250,24 +251,28 @@ class QuickOrderHistory {
         
         $items = isset($_POST['items']) ? $_POST['items'] : array();
         $cart_has_items = !WC()->cart->is_empty();
+        $keep_existing = isset($_POST['keep_existing']) ? $_POST['keep_existing'] : null;
         
-        if ($cart_has_items && !isset($_POST['keep_existing'])) {
+        // First request without keep_existing parameter
+        if ($cart_has_items && $keep_existing === null) {
             wp_send_json_success(array(
-                'needsConfirmation' => true
+                'needsConfirmation' => true 
             ));
             return;
         }
-        
-        if (!$cart_has_items || !isset($_POST['keep_existing'])) {
+        // If user clicked "No, remove them" or there are no existing items
+        if ($keep_existing == 'false' || !$cart_has_items) {
             WC()->cart->empty_cart();
         }
         
+        // Add new items
         foreach ($items as $item) {
             WC()->cart->add_to_cart($item['id'], $item['quantity']);
         }
         
         wp_send_json_success(array(
-            'cartUrl' => wc_get_cart_url()
+            'message' => __('Products added to cart successfully', $this->text_domain),
+            'cart_count' => WC()->cart->get_cart_contents_count()
         ));
     }
 
