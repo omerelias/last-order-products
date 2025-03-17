@@ -9,6 +9,7 @@ class Quick_Order_Settings {
         add_action('admin_menu', array($this, 'add_menu_page'));
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
     }
 
     public function enqueue_admin_styles($hook) {
@@ -28,6 +29,30 @@ class Quick_Order_Settings {
             '1.0.0',
             true
         );
+    }
+
+    public function enqueue_admin_scripts($hook) {
+        if ('woocommerce_page_quick-order-settings' !== $hook) {
+            return;
+        }
+
+        wp_enqueue_style('quick-order-admin', plugin_dir_url(dirname(__FILE__)) . 'assets/css/admin.css');
+        wp_enqueue_style('woocommerce_admin_styles');
+        wp_enqueue_script('selectWoo');
+        wp_enqueue_style('select2');
+        
+        wp_enqueue_script(
+            'quick-order-admin',
+            plugin_dir_url(dirname(__FILE__)) . 'assets/js/admin.js',
+            array('jquery', 'selectWoo'),
+            '1.0.0',
+            true
+        );
+
+        // Add this block to provide the nonce
+        wp_localize_script('quick-order-admin', 'woocommerce_admin', array(
+            'search_products_nonce' => wp_create_nonce('search-products')
+        ));
     }
 
     public function add_menu_page() {
@@ -65,6 +90,11 @@ class Quick_Order_Settings {
         $this->add_text_field('add_to_cart_text', 'Add to Cart Text', 'Add to Cart');
         $this->add_text_field('proceed_to_payment_text', 'Proceed to Payment Text', 'Proceed to Payment');
 
+        // Add confirmation modal texts
+        $this->add_text_field('cart_confirmation_text', 'Cart Confirmation Message', 'Your cart contains existing items. Would you like to keep them?');
+        $this->add_text_field('cart_confirm_yes_text', 'Keep Items Button Text', 'Yes, keep them');
+        $this->add_text_field('cart_confirm_no_text', 'Remove Items Button Text', 'No, remove them');
+
         // Product Settings Section
         add_settings_section(
             'product_settings',
@@ -100,7 +130,10 @@ class Quick_Order_Settings {
     private function get_help_text($id) {
         $help_texts = array(
             'greeting_text' => 'Use %s for the customer\'s name',
-            'items_selected_text' => 'Use %d for the number of items'
+            'items_selected_text' => 'Use %d for the number of items',
+            'cart_confirmation_text' => 'Use %d for the number of items in cart. You can use <b>tags</b> for bold text',
+            'cart_confirm_yes_text' => 'Text for the button to keep existing items',
+            'cart_confirm_no_text' => 'Text for the button to remove existing items'
         );
         return isset($help_texts[$id]) ? $help_texts[$id] : '';
     }

@@ -80,6 +80,26 @@ class Quick_Order_Ajax {
                 }
                 ?>
             </div>
+
+            <div class="order-summary">
+                <div class="total-section">
+                  
+                    <span class="items-selected">
+                        <?php printf(
+                            esc_html($this->settings->get_setting('items_selected_text')), 
+                            0  // Initial count is 0
+                        ); ?>
+                    </span>
+                    <div class="price-group">
+                        <span class="total-label"><?php echo esc_html($this->settings->get_setting('total_text')); ?></span>
+                        <span class="total-price">₪0</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="add-to-cart"><?php echo esc_html($this->settings->get_setting('add_to_cart_text')); ?></button>
+                    <button class="proceed-to-payment"><?php echo esc_html($this->settings->get_setting('proceed_to_payment_text')); ?></button>
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -125,7 +145,10 @@ class Quick_Order_Ajax {
 
             <div class="order-summary">
                 <div class="total-section">
-                    <span class="total-price">₪0</span>
+                    <div class="price-group">
+                        <span class="total-label"><?php echo esc_html($this->settings->get_setting('total_text')); ?></span>
+                        <span class="total-price">₪0</span>
+                    </div>
                     <span class="items-selected">
                         <?php printf(
                             esc_html($this->settings->get_setting('items_selected_text')), 
@@ -143,6 +166,7 @@ class Quick_Order_Ajax {
     }
 
     private function render_product_item($product, $quantity = 1) {
+        $product_url = get_permalink($product->get_id());
         ?>
         <div class="product-item">
             <input type="checkbox" 
@@ -152,12 +176,16 @@ class Quick_Order_Ajax {
                    data-price="<?php echo esc_attr($product->get_price()); ?>">
             
             <div class="product-image">
-                <?php echo $product->get_image('thumbnail'); ?>
+                <a href="<?php echo esc_url($product_url); ?>" target="_blank">
+                    <?php echo $product->get_image('thumbnail'); ?>
+                </a>
             </div>
             
             <div class="product-details">
                 <div class="product-info">
-                    <span class="product-name"><?php echo esc_html($product->get_name()); ?></span>
+                    <a href="<?php echo esc_url($product_url); ?>" target="_blank" class="product-name">
+                        <?php echo esc_html($product->get_name()); ?>
+                    </a>
                     <span class="product-meta">
                         <?php 
                         $weight = $product->get_weight();
@@ -178,6 +206,15 @@ class Quick_Order_Ajax {
     }
 
     private function get_recommended_products() {
+        // Get products selected in admin settings
+        $selected_products = $this->settings->get_setting('recommended_products', array());
+        
+        if (!empty($selected_products)) {
+            // Get products by IDs selected in admin
+            return array_filter(array_map('wc_get_product', $selected_products));
+        }
+
+        // Fallback to popular products if no products selected in admin
         return wc_get_products(array(
             'limit' => 5,
             'orderby' => 'popularity',

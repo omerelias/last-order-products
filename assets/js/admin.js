@@ -8,7 +8,7 @@ jQuery(document).ready(function($) {
                 return {
                     term: params.term,
                     action: 'woocommerce_json_search_products',
-                    security: wc_enhanced_select_params.search_products_nonce
+                    security: woocommerce_admin.search_products_nonce
                 };
             },
             processResults: function(data) {
