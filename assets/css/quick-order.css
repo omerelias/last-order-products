@@ -325,3 +325,27 @@
 .items-selected {
     color: #666666;
 }
+
+.variation-attributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.variation-attribute {
+    color: #666666;
+    background: #F5F5F5;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.attribute-label {
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+.attribute-value {
+    color: #222222;
+}

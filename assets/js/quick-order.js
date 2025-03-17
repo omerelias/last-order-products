@@ -121,10 +121,17 @@
             const checkbox = $(e.currentTarget);
             const productId = checkbox.data('product-id');
             const productData = {
+                id: productId,
                 name: checkbox.data('name'),
                 price: checkbox.data('price'),
                 quantity: checkbox.closest('.product-item').find('.quantity-input').val()
             };
+
+            // Add variation data if it exists
+            if (checkbox.data('variation-id')) {
+                productData.variation_id = checkbox.data('variation-id');
+                productData.parent_id = checkbox.data('parent-id');
+            }
 
             if (checkbox.is(':checked')) {
                 this.selectedItems.set(productId, productData);

@@ -57,7 +57,13 @@ class Quick_Order_Ajax {
         }
         
         foreach ($items as $item) {
-            WC()->cart->add_to_cart($item['id'], $item['quantity']);
+            if (isset($item['variation_id'])) {
+                // Add variation to cart
+                WC()->cart->add_to_cart($item['parent_id'], $item['quantity'], $item['variation_id']);
+            } else {
+                // Add simple product to cart
+                WC()->cart->add_to_cart($item['id'], $item['quantity']);
+            }
         }
         
         wp_send_json_success(array(
@@ -122,7 +128,8 @@ class Quick_Order_Ajax {
                 foreach ($latest_order->get_items() as $item) {
                     $product = $item->get_product();
                     if ($product) {
-                        $this->render_product_item($product, $item->get_quantity());
+                        $variation_attributes = $product->get_type() === 'variation' ? $item->get_meta('_variation_attributes', true) : array();
+                        $this->render_product_item($product, $item->get_quantity(), $variation_attributes);
                     }
                 }
                 ?>
@@ -168,15 +175,20 @@ class Quick_Order_Ajax {
         <?php
     }
 
-    private function render_product_item($product, $quantity = 1) {
+    private function render_product_item($product, $quantity = 1, $variation_attributes = array()) {
         $product_url = get_permalink($product->get_id());
+        $is_variation = $product->get_type() === 'variation';
         ?>
         <div class="product-item">
             <input type="checkbox" 
                    class="product-checkbox" 
                    data-product-id="<?php echo esc_attr($product->get_id()); ?>"
                    data-name="<?php echo esc_attr($product->get_name()); ?>"
-                   data-price="<?php echo esc_attr($product->get_price()); ?>">
+                   data-price="<?php echo esc_attr($product->get_price()); ?>"
+                   <?php if ($is_variation) : ?>
+                       data-variation-id="<?php echo esc_attr($product->get_id()); ?>"
+                       data-parent-id="<?php echo esc_attr($product->get_parent_id()); ?>"
+                   <?php endif; ?>>
             
             <div class="product-image">
                 <a href="<?php echo esc_url($product_url); ?>" target="_blank">
@@ -189,6 +201,22 @@ class Quick_Order_Ajax {
                     <a href="<?php echo esc_url($product_url); ?>" target="_blank" class="product-name">
                         <?php echo esc_html($product->get_name()); ?>
                     </a>
+                    <?php if ($is_variation && !empty($variation_attributes)) : ?>
+                        <div class="variation-attributes">
+                            <?php 
+                            $attributes = array();
+                            foreach ($variation_attributes as $attribute => $value) {
+                                $taxonomy = str_replace('attribute_', '', $attribute);
+                                $term = get_term_by('slug', $value, $taxonomy);
+                                $label = wc_attribute_label($taxonomy);
+                                ?>
+                                <span class="variation-attribute">
+                                    <span class="attribute-label"><?php echo esc_html($label); ?>:</span>
+                                    <span class="attribute-value"><?php echo esc_html($term ? $term->name : $value); ?></span>
+                                </span>
+                            <?php } ?>
+                        </div>
+                    <?php endif; ?>
                     <span class="product-meta">
                         <?php 
                         $weight = $product->get_weight();
