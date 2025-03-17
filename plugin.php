@@ -3,43 +3,64 @@
 Plugin Name: OC - Quick Order
 Description: Displays user's last order with quick reorder functionality
 Version: 1.0
-Author: Orignal Concepts
+Author: Original Concepts
 Text Domain: oc-quick-order
 Domain Path: /languages
 */
 
-if (!defined('ABSPATH')) {
-    exit;
-}
+if (!defined('ABSPATH')) exit;
 
-class QuickOrderHistory {
-    private $text_domain = 'oc-quick-order';
+class Quick_Order {
+    private $settings;
+    private $ajax;
 
     public function __construct() {
+        $this->load_dependencies();
+        $this->init_components();
+        $this->init_hooks();
+    }
+
+    private function load_dependencies() {
+        require_once plugin_dir_path(__FILE__) . 'includes/class-quick-order-settings.php';
+        require_once plugin_dir_path(__FILE__) . 'includes/class-quick-order-ajax.php';
+    }
+
+    private function init_components() {
+        $this->settings = new Quick_Order_Settings();
+        $this->ajax = new Quick_Order_Ajax($this->settings);
+    }
+
+    private function init_hooks() {
+        add_action('plugins_loaded', array($this, 'load_plugin_textdomain'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_footer', array($this, 'render_quick_order_button'));
-        add_action('init', array($this, 'init_plugin'));
-        add_action('plugins_loaded', array($this, 'load_plugin_textdomain'));
-        add_action('wp_ajax_get_quick_order_content', array($this, 'ajax_get_quick_order_content'));
-        add_action('wp_ajax_quick_order_add_to_cart', array($this, 'ajax_add_to_cart'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
     }
 
     public function load_plugin_textdomain() {
-        load_plugin_textdomain(
-            $this->text_domain,
+        load_textdomain(
+            'oc-quick-order',
             false,
             dirname(plugin_basename(__FILE__)) . '/languages/'
         );
     }
 
-    public function init_plugin() {
-        // Initialize plugin
-        if (!class_exists('WooCommerce')) {
-            add_action('admin_notices', function() {
-                echo '<div class="error"><p>' . esc_html__('Quick Order History requires WooCommerce to be installed and active.', $this->text_domain) . '</p></div>';
-            });
+    public function enqueue_admin_scripts($hook) {
+        if ('woocommerce_page_quick-order-settings' !== $hook) {
             return;
         }
+
+        wp_enqueue_style('woocommerce_admin_styles');
+        wp_enqueue_script('selectWoo');
+        wp_enqueue_style('select2');
+        
+        wp_enqueue_script(
+            'quick-order-admin',
+            plugin_dir_url(__FILE__) . 'assets/js/admin.js',
+            array('jquery', 'selectWoo'),
+            '1.0.0',
+            true
+        );
     }
 
     public function enqueue_scripts() {
@@ -66,15 +87,15 @@ class QuickOrderHistory {
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('quick-order-nonce'),
             'texts' => array(
-                'noOrders' => __('No orders in your account yet', $this->text_domain),
-                'recommendedProducts' => __('Make an order and next time you can easily and quickly buy the products you loved again. Meanwhile, these are our most popular products', $this->text_domain),
-                'greeting' => __('Hi %s :)', $this->text_domain),
-                'lastOrder' => __('My Last Order', $this->text_domain),
-                'allProducts' => __('All Products I Bought', $this->text_domain),
-                'total' => __('Total', $this->text_domain),
-                'itemsSelected' => __('%d items selected', $this->text_domain),
-                'addToCart' => __('Add to Cart', $this->text_domain),
-                'proceedToPayment' => __('Proceed to Payment', $this->text_domain)
+                'noOrders' => $this->settings->get_setting('no_orders_text'),
+                'recommendedProducts' => $this->settings->get_setting('recommended_text'),
+                'greeting' => $this->settings->get_setting('greeting_text', 'Hi %s :)'),
+                'lastOrder' => $this->settings->get_setting('last_order_text', 'My Last Order'),
+                'allProducts' => $this->settings->get_setting('all_products_text', 'All Products I Bought'),
+                'total' => $this->settings->get_setting('total_text', 'Total'),
+                'itemsSelected' => $this->settings->get_setting('items_selected_text', '%d items selected'),
+                'addToCart' => $this->settings->get_setting('add_to_cart_text', 'Add to Cart'),
+                'proceedToPayment' => $this->settings->get_setting('proceed_to_payment_text', 'Proceed to Payment')
             )
         ));
     }
@@ -86,7 +107,7 @@ class QuickOrderHistory {
         ?>
         <div id="quick-order-button" class="quick-order-minimized">
             <div class="minimized-content">
-                <span class="title">Quick Order</span>
+                <span class="title"><?php echo esc_html($this->settings->get_setting('button_text', 'Quick Order')); ?></span>
                 <span class="total">₪<span class="amount">0</span></span>
                 <span class="products-list"></span>
             </div>
@@ -97,38 +118,23 @@ class QuickOrderHistory {
                 <span class="close-button">×</span>
                 <div class="header-content">
                     <img src="<?php echo plugin_dir_url(__FILE__) . 'assets/images/plate-icon.svg'; ?>" alt="" class="header-icon">
-                    <h2><?php esc_html_e('The Movement in One Click', $this->text_domain); ?></h2>
+                    <h2><?php echo esc_html($this->settings->get_setting('header_text', 'The Movement in One Click')); ?></h2>
                 </div>
             </div>
             <div id="quick-order-content">
                 <!-- Content will be loaded via AJAX -->
             </div>
         </div>
+
+        <div class="modal-overlay"></div>
+        <div id="cart-confirmation-modal" class="quick-order-modal">
+            <p><?php esc_html_e('Your cart contains existing items. Would you like to keep them?', $this->text_domain); ?></p>
+            <div class="modal-buttons">
+                <button class="confirm-no"><?php esc_html_e('No, remove them', $this->text_domain); ?></button>
+                <button class="confirm-yes"><?php esc_html_e('Yes, keep them', $this->text_domain); ?></button>
+            </div>
+        </div>
         <?php
-    }
-
-    public function ajax_get_quick_order_content() {
-        check_ajax_referer('quick-order-nonce', 'nonce');
-        
-        $user_id = get_current_user_id();
-        $orders = wc_get_orders(array(
-            'customer_id' => $user_id,
-            'limit' => -1,
-            'orderby' => 'date',
-            'order' => 'DESC',
-        ));
-
-        ob_start();
-
-        if (empty($orders)) {
-            $this->render_no_orders_template();
-        } else {
-            $this->render_orders_template($orders);
-        }
-
-        $html = ob_get_clean();
-
-        wp_send_json_success(array('html' => $html));
     }
 
     private function render_no_orders_template() {
@@ -147,10 +153,11 @@ class QuickOrderHistory {
             </div>
         </div>
         <?php
-    }
+    } 
 
     private function render_orders_template($orders) {
-        $latest_order = array_shift($orders);
+        return; 
+        $latest_order = array_shift($orders); 
         $user = wp_get_current_user();
         ?>
         <div class="orders-content">
@@ -246,36 +253,6 @@ class QuickOrderHistory {
         <?php
     }
 
-    public function ajax_add_to_cart() {
-        check_ajax_referer('quick-order-nonce', 'nonce');
-        
-        $items = isset($_POST['items']) ? $_POST['items'] : array();
-        $cart_has_items = !WC()->cart->is_empty();
-        $keep_existing = isset($_POST['keep_existing']) ? $_POST['keep_existing'] : null;
-        
-        // First request without keep_existing parameter
-        if ($cart_has_items && $keep_existing === null) {
-            wp_send_json_success(array(
-                'needsConfirmation' => true 
-            ));
-            return;
-        }
-        // If user clicked "No, remove them" or there are no existing items
-        if ($keep_existing == 'false' || !$cart_has_items) {
-            WC()->cart->empty_cart();
-        }
-        
-        // Add new items
-        foreach ($items as $item) {
-            WC()->cart->add_to_cart($item['id'], $item['quantity']);
-        }
-        
-        wp_send_json_success(array(
-            'message' => __('Products added to cart successfully', $this->text_domain),
-            'cart_count' => WC()->cart->get_cart_contents_count()
-        ));
-    }
-
     private function get_recommended_products() {
         // This could be enhanced with actual recommendation logic
         return wc_get_products(array(
@@ -286,4 +263,4 @@ class QuickOrderHistory {
     }
 }
 
-new QuickOrderHistory(); 
+new Quick_Order(); 

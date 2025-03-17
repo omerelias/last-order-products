@@ -1,0 +1,76 @@
+.quick-order-settings {
+    max-width: 1200px;
+    margin: 20px 0;
+}
+
+.quick-order-settings-container {
+    background: #fff;
+    padding: 15px;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    margin-top: 15px;
+}
+
+.quick-order-settings h2 {
+    padding: 0;
+    margin: 0 0 15px;
+    font-size: 1.3em;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.quick-order-field {
+    margin: 8px 0;
+}
+
+.quick-order-field textarea {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    padding: 6px;
+    box-shadow: 0 0 0 transparent;
+    border-radius: 4px;
+    border: 1px solid #8c8f94;
+    background-color: #fff;
+    color: #2c3338;
+    width: 100%;
+}
+
+.quick-order-field textarea:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
+
+.quick-order-field .description {
+    font-style: italic;
+    color: #646970;
+    margin-top: 3px;
+    font-size: 12px;
+}
+
+/* Form table improvements */
+.form-table th {
+    padding: 10px 10px 10px 0;
+    width: 200px;
+    font-size: 13px;
+}
+
+.form-table td {
+    padding: 10px;
+}
+
+/* Submit button area */
+.submit {
+    padding: 15px 0 0 0;
+    margin: 15px 0 0 0;
+    border-top: 1px solid #eee;
+}
+
+/* Reduce space between sections */
+.form-table {
+    margin-top: 0;
+}
+
+/* Adjust section headers */
+.form-table + h2 {
+    margin-top: 20px;
+} 

@@ -158,22 +158,15 @@
                 quantity: data.quantity
             }));
 
-            // Create data object
-            const data = {
-                action: 'quick_order_add_to_cart',
-                nonce: quickOrderData.nonce,
-                items: itemsArray
-            };
-
-            // Only add keep_existing if it's not null, and ensure it's boolean
-            if (keepExisting !== null) {
-                data.keep_existing = Boolean(keepExisting);
-            }
-
             $.ajax({
                 url: quickOrderData.ajaxurl,
                 type: 'POST',
-                data: data,
+                data: {
+                    action: 'quick_order_add_to_cart',
+                    nonce: quickOrderData.nonce,
+                    items: itemsArray,
+                    ...(keepExisting !== null && { keep_existing: keepExisting })
+                },
                 success: (response) => {
                     if (response.success) {
                         if (response.data.needsConfirmation) {
@@ -188,21 +181,24 @@
         }
 
         showCartConfirmation() {
-            const modal = $('#cart-confirmation-modal');
-            modal.show();
+            // Show the modal and overlay
+            $('.modal-overlay').show();
+            $('#cart-confirmation-modal').show();
 
             // Remove any existing event handlers
-            modal.find('.confirm-yes, .confirm-no').off('click');
+            $('#cart-confirmation-modal .confirm-yes, #cart-confirmation-modal .confirm-no').off('click');
 
             // Add new event handlers
-            modal.find('.confirm-yes').on('click', () => {
-                modal.hide();
-                this.addToCart(true); // Call addToCart with keepExisting = true
+            $('#cart-confirmation-modal .confirm-yes').on('click', () => {
+                $('.modal-overlay').hide();
+                $('#cart-confirmation-modal').hide();
+                this.addToCart(true);
             });
 
-            modal.find('.confirm-no').on('click', () => {
-                modal.hide();
-                this.addToCart(false); // Call addToCart with keepExisting = false
+            $('#cart-confirmation-modal .confirm-no').on('click', () => {
+                $('.modal-overlay').hide();
+                $('#cart-confirmation-modal').hide();
+                this.addToCart(false);
             });
         }
     }
